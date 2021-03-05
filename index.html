@@ -1,10 +1,18 @@
 <!DOCTYPE html>
 <html>
-    <body>
-        <p>
-            Google?
-        </p>
-        <a href="http://www.google.com">
-        <img src="gogole.png" /></a>
-    </body>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <link href="style.css" rel="stylesheet" type="text/css" />
+  </head>
+  <body>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+
+        <script src="script.js"></script>
+        <span>Select a cell!</span>
+        <span>Select a reward value</span>
+        <input type="number" min="-1" max="2" step=".01" value="-.05" id="rewardVal">
+        <button type="button" id="rewardBtnSubmit">Submit</button>
+        <div id="tableContainer"></div>
+  </body>
 </html>
