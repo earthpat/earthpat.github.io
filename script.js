@@ -194,6 +194,7 @@ function generateMovement(reward){
     time = setInterval(function(){
         let intendedMove = findNextMove(currLoc);
         let actualMove = sampleProb(intendedMove, currLoc);
+        console.log("actualMove:", actualMove, "\n")
 
         if(JSON.stringify(currLoc) != JSON.stringify(actualMove)){
             var player = document.getElementById("play").rows[actualMove[0]].cells[actualMove[1]];
@@ -223,6 +224,7 @@ function stopTime(){
 
 function sampleProb(intendedMove, currLoc){
     let prob = Math.floor(Math.random()*10);
+    console.log("intendedMove:", intendedMove)
     if(prob > 3){
         return intendedMove;
     }
@@ -308,8 +310,6 @@ function sampleProb(intendedMove, currLoc){
 }
 
 function callModel(model){
-    console.log(model)
-
     var table = document.getElementById("play");
     for (var i = 0, row; row = table.rows[i]; i++) {
         for (var j = 0, col; col = row.cells[j]; j++) {
