@@ -1,6 +1,8 @@
 $(document).ready(function(){
-    $( "#tableContainer" ).append( generateGrid(3, 4) );
+    var size = document.getElementById("sizeOfGrid").selectedOptions[0].value;
+    size = parseInt(size);
 
+    $( "#tableContainer" ).append( generateGrid(size, size) );
     $("#rewardBtnSubmit").click(function(){
         generateMovement(parseFloat($("#rewardVal").val()));
     })
