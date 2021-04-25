@@ -10,16 +10,9 @@
 
         <script src="script.js"></script>
         <span>Select a cell!</span>
-        <span>Select a reward value</span>
-        <input type="number" min="-1" max="2" step=".01" value="-.05" id="rewardVal">
-        <span>Choose size of grid.</span>
-        <select name="sizeOfGrid" id="sizeOfGrid">
-          <option value="3">Three</option>
-          <option value="4">Four</option>
-          <option value="5">Five</option>
-          <option value="6">Six</option>
-        </select>
-        <button type="button" id="rewardBtnSubmit">Submit</button>
+        <span id="picker">Select start.</span>
+        <input type="number" min="-1" max="2" step=".01" value="-.05" id="rewardVal" hidden="true">
+        <button type="button" id="rewardBtnSubmit" hidden="true">Submit</button>
         <div id="tableContainer"></div>
   </body>
 </html>

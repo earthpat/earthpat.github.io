@@ -1,30 +1,72 @@
+var model = new Array(30).fill(0).map(()=>new Array(30).fill(0));
+var positions = []
 $(document).ready(function(){
-    var size = document.getElementById("sizeOfGrid").selectedOptions[0].value;
-    size = parseInt(size);
 
-    $( "#tableContainer" ).append( generateGrid(size, size) );
+    $( "#tableContainer" ).append( generateGrid(30, 30) );
+
     $("#rewardBtnSubmit").click(function(){
         generateMovement(parseFloat($("#rewardVal").val()));
     })
 
-    var start = document.getElementById("play").rows[2].cells[0];  
-    var goal = document.getElementById("play").rows[0].cells[3];  
-    var terminal = document.getElementById("play").rows[1].cells[3];  
-    
+    var fulfilled = false;
+    var placed_start = false;
+    var placed_goal = false;
+    var placed_terminal = false;
 
-    start.style.backgroundColor = "gold";
-    goal.style.backgroundColor = "blue";
-    terminal.style.backgroundColor = "red";
+    var start = document.getElementById("play");  
+    var goal = document.getElementById("play");
+    var terminal = document.getElementById("play");  
 
     var dragging = false;
+
     $( "td" ).mousedown(function(){
-        dragging = true;
+        if (!fulfilled){
+            if (!placed_start){
+                var index = $( "td" ).index( this );
+                var row = Math.floor( ( index ) / 30);
+                var col = ( index % 30 );
+                start = document.getElementById("play").rows[row].cells[col];
+                start.style.backgroundColor = "gold";
+                document.getElementById("picker").innerHTML = "Select Goal.";
+                placed_start = true
+                model[row][col] = Number.NEGATIVE_INFINITY
+                positions.push([row, col])
+            }
+            else if (!placed_goal){
+                var index = $( "td" ).index( this );
+                var row = Math.floor( ( index ) / 30);
+                var col = ( index % 30 );
+                goal = document.getElementById("play").rows[row].cells[col];
+                goal.style.backgroundColor = "blue";
+                document.getElementById("picker").innerHTML = "Select Terminal.";
+                placed_goal = true
+                model[row][col] = 1
+                positions.push([row,col])
+            }
+            else if (!placed_terminal){
+                var index = $( "td" ).index( this );
+                var row = Math.floor( ( index ) / 30);
+                var col = ( index % 30 );
+                terminal = document.getElementById("play").rows[row].cells[col];
+                terminal.style.backgroundColor = "red";
+                document.getElementById("picker").innerHTML = "Select Reward.";
+                document.getElementById("rewardVal").hidden = false;
+                document.getElementById("rewardBtnSubmit").hidden = false;
+                placed_terminal = true
+                fulfilled = true
+                model[row][col] = -1
+                positions.push([row,col])
+            }
+        }
+        else{
+            dragging = true;
+        }
     })
     .mousemove(function() {
         if(dragging == true){
             var index = $( "td" ).index( this );
-            var row = Math.floor( ( index ) / 4) + 1;
-            var col = ( index % 4 ) + 1;
+            var row = Math.floor( ( index ) / 30) + 1;
+            var col = ( index % 30 ) + 1;
             if((row != 3 || col != 1) && (row != 2 || col != 4) && (row != 1 || col != 4)){
                 $( this ).css( 'background-color', 'black' );
             }
@@ -36,13 +78,6 @@ $(document).ready(function(){
 
 
 });
-
-var model = [
-    [0, 0, 0, 1],
-    [0, 0, 0, -1],
-    [Number.NEGATIVE_INFINITY, 0, 0, 0]
-];
-
 
 var probMovement = {
     "intended": .6,
@@ -75,12 +110,10 @@ function generateGrid( rows, cols ) {
 }
 
 function generateMovement(reward){
-    alert(typeof(reward));
 
-    for(let row = 0; row < 3; ++row){
-        for(let col = 0; col < 4; ++col){
+    for(let row = 0; row < 30; ++row){
+        for(let col = 0; col < 30; ++col){
             if(document.getElementById("play").rows[row].cells[col].style.backgroundColor == 'black'){
-                console.log(row, col);
                 model[row][col] = null;
             }
 
@@ -93,8 +126,8 @@ function generateMovement(reward){
     // value iteration
     counter = 0;
     while(convergence == 0){
-        for(let row = 0; row < 3; ++row){
-            for(let col = 3; col > -1; --col){
+        for(let row = 0; row < 30; ++row){
+            for(let col = 29; col > -1; --col){
                 if(model[row][col] == 1 || model[row][col] == -1 || model[row][col] == null){
                     continue;
                 }
@@ -105,7 +138,7 @@ function generateMovement(reward){
                     for(move in dir){
                         // right
                         if((dir[move] + i) % 4 == 0){
-                            if(col + 1 < 5 && model[row][col+1] != null){
+                            if(col + 1 < 30 && model[row][col+1] != null){
                                 ans += probMovement[move]*model[row][col+1];
                             }
                             else{
@@ -132,7 +165,7 @@ function generateMovement(reward){
                         }
                         // down
                         else if((dir[move] + i) % 4 == 3){
-                            if(row + 1 < 3 && model[row + 1][col] != null){
+                            if(row + 1 < 30 && model[row + 1][col] != null){
                                 ans += probMovement[move]*model[row + 1][col];
                             }
                             else{
@@ -153,11 +186,11 @@ function generateMovement(reward){
         previousModel = JSON.stringify(model);
         ++counter;
     }
-    console.log(model);
+    callModel(model)
     // agent movement
     // based on random movement, will always look for next best
     // in their immediate environment
-    let currLoc = [2,0];
+    let currLoc = positions[0];
     time = setInterval(function(){
         let intendedMove = findNextMove(currLoc);
         let actualMove = sampleProb(intendedMove, currLoc);
@@ -171,10 +204,9 @@ function generateMovement(reward){
 
             currLoc = actualMove;
         }
-
-        if((currLoc[0] == 0 || currLoc[0] == 1) && currLoc[1] == 3){
+        if((currLoc[0] == positions[1][0] && currLoc[1] == positions[1][1]) || (currLoc[0] == positions[2][0] && currLoc[0] == positions[2][1])){
             stopTime();
-            if(currLoc[0] == 0 && currLoc[1] == 3){
+            if(currLoc[0] == positions[1][0] && currLoc[1] == positions[1][1]){
                 alert("Goal");
             }
             else{
@@ -205,7 +237,7 @@ function sampleProb(intendedMove, currLoc){
         });
         //intended up
         if(result[0] == 1){
-            if(currLoc[1] + 1 < 4 && model[currLoc[0]][currLoc[1] + 1] != null){
+            if(currLoc[1] + 1 < 30 && model[currLoc[0]][currLoc[1] + 1] != null){
                 ans[1] += 1;
             }
         }
@@ -223,13 +255,12 @@ function sampleProb(intendedMove, currLoc){
         }
         //intended right
         else if(result[1] == -1){
-            if(currLoc[0] + 1 < 3 && model[currLoc[0] + 1][currLoc[1]] != null){
+            if(currLoc[0] + 1 < 30 && model[currLoc[0] + 1][currLoc[1]] != null){
                 ans[0] += 1;
             }
         }
         else{
-            console.log("here")
-            if(currLoc[1] + 1 < 4 && model[currLoc[0]][currLoc[1] + 1] != null){
+            if(currLoc[1] + 1 < 30 && model[currLoc[0]][currLoc[1] + 1] != null){
                 ans[1] += 1;
             }
         }
@@ -276,6 +307,17 @@ function sampleProb(intendedMove, currLoc){
     }
 }
 
+function callModel(model){
+    console.log(model)
+
+    var table = document.getElementById("play");
+    for (var i = 0, row; row = table.rows[i]; i++) {
+        for (var j = 0, col; col = row.cells[j]; j++) {
+            table.rows[i].cells[j].innerHTML = model[i][j]
+        }  
+    }
+}
+
 function findNextMove(currLoc){
     let ans = model[currLoc[0]][currLoc[1]];
     nextBlock = currLoc;
@@ -305,7 +347,7 @@ function findNextMove(currLoc){
         }
     }
     // right
-    if(currLoc[1] + 1 < 4 && model[currLoc[0]][currLoc[1] + 1] != null){
+    if(currLoc[1] + 1 < 30 && model[currLoc[0]][currLoc[1] + 1] != null){
         if(ans < model[currLoc[0]][currLoc[1] + 1]){
             ans = (model[currLoc[0]][currLoc[1]+1]);
             nextBlock = [currLoc[0], currLoc[1]+1];
@@ -317,7 +359,7 @@ function findNextMove(currLoc){
         }
     }
     // down
-    if(currLoc[0] + 1 < 3 && model[currLoc[0] + 1][currLoc[1]] != null){
+    if(currLoc[0] + 1 < 30 && model[currLoc[0] + 1][currLoc[1]] != null){
         if(ans < model[currLoc[0] + 1][currLoc[1]]){
             ans = (model[currLoc[0]+1][currLoc[1]]);
             nextBlock = [currLoc[0]+1, currLoc[1]];
